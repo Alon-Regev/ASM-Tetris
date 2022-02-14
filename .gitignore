@@ -1,0 +1,6 @@
+# ignore executable
+/Tetris
+
+# ignore bin and objects
+*.o
+/bin/*
