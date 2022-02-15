@@ -10,6 +10,7 @@ extern void drawSquare(int x, int y, const char *rgb);
 extern void setup();
 extern int checkEvent();
 extern XEvent getEvent();
+extern int isWmDeleteEvent(XEvent);
 // event handlers
 extern void update();
 extern void handleKeyPress(uint keyCode);
@@ -29,27 +30,40 @@ int main()
 // return: none
 void gameLoop()
 {
+    XEvent event;
     int frame = 0;
-    // handle events
-    while(1)
+    int running = 1;
+
+    // handle events until window closed
+    while (running)
     {
-        if (checkEvent())
-        {
-            XEvent event = getEvent();
-            // handle events
-            switch (event.type)
-            {
-                case KeyPress:
-                    handleKeyPress(event.xkey.keycode);
-                    break;
-                default:
-                    break;
-            }
-        }
-        else
+        // if not events wait until next frame
+        if (!checkEvent())
         {
             update();
             waitForNextFrame();
+            continue;
+        }
+
+        // handle events
+        event = getEvent();
+        // handle events
+        switch (event.type)
+        {
+        // key press event
+        case KeyPress:
+            handleKeyPress(event.xkey.keycode);
+            break;
+        // check window close event
+        case ClientMessage:
+            if (isWmDeleteEvent(event))
+            { // end game loop
+                running = 0;
+            }
+            break;
+        // other
+        default:
+            break;
         }
     }
 }
