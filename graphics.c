@@ -12,6 +12,8 @@ Window window;
 int screen;
 
 // method sets up the graphics and creates the window
+// input: none
+// return: none
 void setup()
 {
     // connect to X server
@@ -36,4 +38,22 @@ void setup()
 
     // set window to be displayed on screen
     XMapWindow(display, window);
+}
+
+// method checks if there's a pending event
+// input: none
+// return: true if there's a pending event, false otherwise
+int checkEvent()
+{
+    return XPending(display) > 0;
+}
+
+// method gets the next event
+// input: none
+// return: the next event
+XEvent getEvent()
+{
+    XEvent event;
+    XNextEvent(display, &event);
+    return event;
 }
