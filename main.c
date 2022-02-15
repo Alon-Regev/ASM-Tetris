@@ -1,13 +1,19 @@
 #include <X11/Xlib.h>
 #include <sys/time.h>
+#include <unistd.h>
 
 extern void drawSquare(int x, int y, const char *rgb);
 
 #define FRAME_TIME_MICROSECONDS 25000
 
+// external functions
 extern void setup();
 extern int checkEvent();
 extern XEvent getEvent();
+// event handlers
+extern void update();
+extern void handleKeyPress(uint keyCode);
+
 void gameLoop();
 void waitForNextFrame();
 
@@ -27,13 +33,22 @@ void gameLoop()
     // handle events
     while(1)
     {
-        //printf("hi");
         if (checkEvent())
         {
             XEvent event = getEvent();
+            // handle events
+            switch (event.type)
+            {
+                case KeyPress:
+                    handleKeyPress(event.xkey.keycode);
+                    break;
+                default:
+                    break;
+            }
         }
         else
         {
+            update();
             waitForNextFrame();
         }
     }
