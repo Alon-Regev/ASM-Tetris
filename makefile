@@ -27,3 +27,8 @@ bin/%.o: %.asm $(BIN_DIR)
 # create bin directory if it's missing
 $(BIN_DIR):
 	mkdir $@
+
+# compile and run
+.PHONY: run
+run: $(EXECUTABLE_NAME)
+	./$(EXECUTABLE_NAME)

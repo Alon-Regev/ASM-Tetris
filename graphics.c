@@ -37,6 +37,7 @@ void setup()
     XStoreName(display, window, "Tetris");
 
     // set window to be displayed on screen
+    XSelectInput(display, window, ExposureMask | KeyPressMask);
     XMapWindow(display, window);
 }
 
