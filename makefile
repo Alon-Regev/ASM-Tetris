@@ -3,7 +3,7 @@ EXECUTABLE_NAME := Tetris
 BIN_DIR := bin
 COMPILER_FLAGS := -c
 ASSEMBLER_FLAGS := -f elf64
-LINKER_FLAGS := -no-pie
+LINKER_FLAGS := -no-pie -lX11
 
 # find c and asm files
 SOURCE_FILES := $(shell find -name "*.asm" -or -name "*.c")
@@ -14,15 +14,15 @@ OBJECTS := $(patsubst ./%, $(BIN_DIR)/%, $(RAW_OBJECTS))
 
 # link obj files to executable (gcc)
 Tetris: $(OBJECTS)
-	gcc $(LINKER_FLAGS) $^ -o $(EXECUTABLE_NAME)
+	gcc $^ -o $(EXECUTABLE_NAME) $(LINKER_FLAGS)
 
 # c to obj (gcc)
 bin/%.o: %.c $(BIN_DIR)
-	gcc $(COMPILER_FLAGS) $< -o $@
+	gcc $< -o $@ $(COMPILER_FLAGS)
 
 # asm to obj (nasm)
 bin/%.o: %.asm $(BIN_DIR)
-	nasm $(ASSEMBLER_FLAGS) $< -o $@
+	nasm $< -o $@ $(ASSEMBLER_FLAGS)
 
 # create bin directory if it's missing
 $(BIN_DIR):
