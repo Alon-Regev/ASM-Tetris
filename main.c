@@ -9,8 +9,6 @@ extern void setup();
 extern int checkEvent();
 extern XEvent getEvent();
 extern int isWmDeleteEvent(XEvent);
-extern void drawRect(int, int, int, int, const char*);
-extern void drawText(int, int, const char *, const char *);
 // event handlers
 extern void update();
 extern void handleKeyPress(uint keyCode);
@@ -32,15 +30,16 @@ void gameLoop()
 {
     XEvent event;
     int running = 1;
+    int frame = 0;
 
     // handle events until window closed
     while (running)
     {
+        frame++;
         // if not events wait until next frame
         if (!checkEvent())
         {
             update();
-            drawText(10, 17, "Hello World!", "#0D8");
             waitForNextFrame();
             continue;
         }

@@ -118,3 +118,11 @@ void drawText(int x, int y, const char *text, const char *color)
     GC gc = createGC(color);
     XDrawString(display, window, gc, x, y, text, strlen(text));
 }
+
+// method clears the screen
+// input: none
+// return: none
+void clearScreen()
+{
+    XClearWindow(display, window);
+}
