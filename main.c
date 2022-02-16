@@ -30,12 +30,10 @@ void gameLoop()
 {
     XEvent event;
     int running = 1;
-    int frame = 0;
 
     // handle events until window closed
     while (running)
     {
-        frame++;
         // if not events wait until next frame
         if (!checkEvent())
         {
