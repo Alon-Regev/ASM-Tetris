@@ -7,6 +7,7 @@
 #define WINDOW_HEIGHT 450
 
 // graphics globals
+Atom wmDeleteMessage;
 Display *display;
 Window window;
 int screen;
@@ -37,7 +38,12 @@ void setup()
     XStoreName(display, window, "Tetris");
 
     // set window to be displayed on screen
+    XSelectInput(display, window, ExposureMask | KeyPressMask);
     XMapWindow(display, window);
+
+    // prepare for window being closed
+    wmDeleteMessage = XInternAtom(display, "WM_DELETE_WINDOW", False);
+    XSetWMProtocols(display, window, &wmDeleteMessage, 1);
 }
 
 // method checks if there's a pending event
@@ -56,4 +62,13 @@ XEvent getEvent()
     XEvent event;
     XNextEvent(display, &event);
     return event;
+}
+
+// method checks if an event is a wm delete event
+// input: event - the event to check
+// return: true if the event is a wm delete event, false otherwise
+int isWmDeleteEvent(XEvent event)
+{
+    return event.type == ClientMessage &&
+           event.xclient.data.l[0] == wmDeleteMessage;
 }
