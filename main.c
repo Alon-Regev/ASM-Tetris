@@ -23,13 +23,12 @@ int main()
     return 0;
 }
 
-// method manages the game loop
+// function manages the game loop
 // input: none
 // return: none
 void gameLoop()
 {
     XEvent event;
-    int frame = 0;
     int running = 1;
 
     // handle events until window closed
@@ -66,7 +65,7 @@ void gameLoop()
     }
 }
 
-// method waits until next frame
+// function waits until next frame
 // input: none
 // return: none
 void waitForNextFrame()
