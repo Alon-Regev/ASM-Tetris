@@ -2,10 +2,7 @@
 global update
 global handleKeyPress
 
-extern printf
-
 section .data
-msg: db '%d', 10, 0
 
 section .text
 ; event handler for updating the game state every frame
@@ -13,7 +10,6 @@ section .text
 ; input: none
 ; return: none
 update:
-    ; print msg
     ret
 
 ; event handler for key presses

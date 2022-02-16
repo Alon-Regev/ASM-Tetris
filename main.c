@@ -2,8 +2,6 @@
 #include <sys/time.h>
 #include <unistd.h>
 
-extern void drawSquare(int x, int y, const char *rgb);
-
 #define FRAME_TIME_MICROSECONDS 25000
 
 // external functions
