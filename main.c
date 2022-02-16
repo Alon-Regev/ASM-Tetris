@@ -10,6 +10,7 @@ extern int checkEvent();
 extern XEvent getEvent();
 extern int isWmDeleteEvent(XEvent);
 extern void drawRect(int, int, int, int, const char*);
+extern void drawText(int, int, const char *, const char *);
 // event handlers
 extern void update();
 extern void handleKeyPress(uint keyCode);
@@ -24,7 +25,7 @@ int main()
     return 0;
 }
 
-// method manages the game loop
+// function manages the game loop
 // input: none
 // return: none
 void gameLoop()
@@ -39,6 +40,7 @@ void gameLoop()
         if (!checkEvent())
         {
             update();
+            drawText(10, 17, "Hello World!", "#0D8");
             waitForNextFrame();
             continue;
         }
@@ -66,7 +68,7 @@ void gameLoop()
     }
 }
 
-// method waits until next frame
+// function waits until next frame
 // input: none
 // return: none
 void waitForNextFrame()
