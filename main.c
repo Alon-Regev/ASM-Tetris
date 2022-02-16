@@ -9,6 +9,7 @@ extern void setup();
 extern int checkEvent();
 extern XEvent getEvent();
 extern int isWmDeleteEvent(XEvent);
+extern void drawRect(int, int, int, int, const char*);
 // event handlers
 extern void update();
 extern void handleKeyPress(uint keyCode);
@@ -29,7 +30,6 @@ int main()
 void gameLoop()
 {
     XEvent event;
-    int frame = 0;
     int running = 1;
 
     // handle events until window closed

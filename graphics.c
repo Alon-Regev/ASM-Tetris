@@ -31,8 +31,8 @@ void setup()
     // create window
     window = XCreateSimpleWindow(display, RootWindow(display, screen), 0, 0,
                                  WINDOW_WIDTH, WINDOW_HEIGHT, 0,
-                                 BlackPixel(display, screen),   // border
-                                 BlackPixel(display, screen));  // background
+                                 BlackPixel(display, screen),  // border
+                                 BlackPixel(display, screen)); // background
 
     // set window title
     XStoreName(display, window, "Tetris");
@@ -71,4 +71,38 @@ int isWmDeleteEvent(XEvent event)
 {
     return event.type == ClientMessage &&
            event.xclient.data.l[0] == wmDeleteMessage;
+}
+
+// method creates a GC for drawing in a specific color
+// input: GC color as string
+// return: GC
+GC createGC(const char *rgb)
+{
+    // create colormap
+    Colormap colormap;
+	colormap = DefaultColormap(display, screen);
+
+    // create color
+	XColor color;
+	XParseColor(display, colormap, rgb, &color);
+	XAllocColor(display, colormap, &color);
+    
+    // create gc from color
+	XGCValues gcv;
+	gcv.background = color.pixel;
+	gcv.foreground = color.pixel;
+	GC gc = XCreateGC(display, RootWindow(display, screen), GCBackground | GCForeground, &gcv);
+
+	return gc;
+}
+
+// method draws a rectangle on the screen
+// input: x, y: the coordinates of the top left corner of the rectangle
+// w, h: the width and height of the rectangle
+// color: the color of the rectangle as a string
+// return: none
+void drawRect(int x, int y, int w, int h, const char *color)
+{
+    GC gc = createGC(color);
+    XFillRectangle(display, window, gc, x, y, w, h);
 }
