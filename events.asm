@@ -1,17 +1,33 @@
 %define board_width 10
 %define board_height 15
 
+%define piece_size 4
+
 ; exported event handlers
 global update
 global handleKeyPress
 
 ; imported functions
-extern drawBoard
+extern drawPiece
 extern clearScreen
 
 section .data
+    ; colors
+    color_red: db "#f00", 0
+
+    ; vars
     board_length: equ board_width * board_height
-    board:  times board_length db 1
+    board:  times board_length db 0
+
+    piece_length: equ piece_size * piece_size
+    piece:  db 0, 0, 1, 1
+            db 0, 0, 1, 1
+            db 1, 0, 0, 1
+            db 1, 1, 0, 0
+
+    piece_x: dw 2
+    piece_y: dw 2
+    piece_color: dq color_red
 
 
 section .text
@@ -20,26 +36,6 @@ section .text
 ; input: none
 ; return: none
 update:
-    call redraw
-    ret
-
-; function for redrawing the screen GUI
-; input: none
-; return: none
-redraw:
-    push rbp
-    mov rbp, rsp
-
-    ; clean screen
-    call clearScreen
-
-    ; draw board
-    mov rdi, board
-    call drawBoard
-
-    ; return
-    mov rsp, rbp
-    pop rbp
     ret
 
 ; event handler for key presses
