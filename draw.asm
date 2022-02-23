@@ -16,9 +16,6 @@ extern drawRect
 extern printf
 
 section .data
-    format: db "%d, %d\n", 0xa, 0
-    cell_color: db "#888", 0    ; gray cells
-
     ; constants
     cell_size_full: equ window_height / board_height    ; the height constraints the cell size
     border_one_side: equ 2

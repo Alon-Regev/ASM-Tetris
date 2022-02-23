@@ -17,17 +17,14 @@ section .data
 
     ; vars
     board_length: equ board_width * board_height
-    board:  times board_length db 0
+    board: times board_length db 0
 
     piece_length: equ piece_size * piece_size
-    piece:  db 0, 0, 1, 1
-            db 0, 0, 1, 1
-            db 1, 0, 0, 1
-            db 1, 1, 0, 0
+    piece: times 16 db 0
 
-    piece_x: dw 2
-    piece_y: dw 2
-    piece_color: dq color_red
+    piece_x: dw 0
+    piece_y: dw 0
+    piece_color: dq 0
 
 
 section .text
