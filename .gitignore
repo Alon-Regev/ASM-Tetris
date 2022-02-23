@@ -4,3 +4,6 @@
 # ignore bin and objects
 *.o
 /bin/*
+
+# vscode files
+.vscode

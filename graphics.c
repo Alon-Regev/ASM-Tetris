@@ -81,8 +81,8 @@ GC createGC(const char *rgb)
 {
     // create colormap
     Colormap colormap;
-	colormap = DefaultColormap(display, screen);
-
+    colormap = DefaultColormap(display, screen);
+    
     // create color
 	XColor color;
 	XParseColor(display, colormap, rgb, &color);
@@ -93,7 +93,7 @@ GC createGC(const char *rgb)
 	gcv.background = color.pixel;
 	gcv.foreground = color.pixel;
 	GC gc = XCreateGC(display, RootWindow(display, screen), GCBackground | GCForeground, &gcv);
-
+    
 	return gc;
 }
 
@@ -102,7 +102,7 @@ GC createGC(const char *rgb)
 // w, h: the width and height of the rectangle
 // color: the color of the rectangle as a string
 // return: none
-void drawRect(int x, int y, int w, int h, const char *color)
+void drawRect(int x, int y, int w, int h, const char* color)
 {
     GC gc = createGC(color);
     XFillRectangle(display, window, gc, x, y, w, h);
