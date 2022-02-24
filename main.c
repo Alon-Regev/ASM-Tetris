@@ -12,6 +12,7 @@ extern int isWmDeleteEvent(XEvent);
 // event handlers
 extern void update();
 extern void handleKeyPress(uint keyCode);
+extern void init();
 
 void gameLoop();
 void waitForNextFrame();
@@ -30,6 +31,9 @@ void gameLoop()
 {
     XEvent event;
     int running = 1;
+
+    // call initialize event
+    init();
 
     // handle events until window closed
     while (running)
