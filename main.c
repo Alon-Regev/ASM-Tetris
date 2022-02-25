@@ -54,7 +54,6 @@ void gameLoop()
         {
         // key press event
         case KeyPress:
-            printf("%d\n", event.xkey.keycode);
             handleKeyPress(event.xkey.keycode);
             break;
         // check window close event

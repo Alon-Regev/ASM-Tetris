@@ -40,12 +40,31 @@ section .data
     piece_y: dw 0
     piece_color: dq 0
 
+    frames_to_drop: dw 40
+    drop_speed: dw 40   ; once per second
+
 section .text
 ; event handler for updating the game state every frame
 ; called every frame by the game loop
 ; input: none
 ; return: none
 update:
+    push rbp
+    mov rbp, rsp
+
+    dec word [frames_to_drop]
+    jnz dont_drop   ; if frames left == 0
+    ; drop the piece (TEMP)
+    mov rdi, down_key
+    call handleKeyPress
+    ; reset timer
+    mov ax, [drop_speed]
+    mov [frames_to_drop], ax
+
+dont_drop:
+
+    mov rsp, rbp
+    pop rbp
     ret
 
 ; event handler for key presses
