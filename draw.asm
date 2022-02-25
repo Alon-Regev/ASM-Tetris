@@ -10,10 +10,14 @@
 
 ; exported functions
 global drawPiece
+global randomColor
+global getBackgroundColor
 
 ; imported functions
 extern drawRect
 extern printf
+extern rand
+
 
 section .data
     ; constants
@@ -22,6 +26,19 @@ section .data
 
     border: equ border_one_side * 2
     cell_size: equ cell_size_full - border
+
+    ; colors
+    color_red: db "#f00", 0
+    color_yellow: db "#ff0", 0
+    color_green: db "#0f0", 0
+    color_blue: db "#00f", 0
+    color_pink: db "#f0f", 0
+    color_cyan: db "#0ff", 0
+
+    background_color: db "#000", 0
+
+    colors: dq color_red, color_yellow, color_green, color_blue, color_pink, color_cyan
+    color_count: equ ($-colors)/8
 
 section .text
 ; funciton draws a piece on the screen
@@ -129,4 +146,25 @@ drawCell:
     ; return
     mov rsp, rbp
     pop rbp
+    ret
+
+; function returns a random color
+; input: none
+; return: color (const char*) (rax)
+randomColor:
+    ; get random number
+    call rand
+    ; get color index (modulo color_count)
+    mov rbx, color_count
+    div rbx
+
+    ; get color
+    mov rax, [colors + rdx * 8]
+    ret
+
+; function returns the background color
+; input: none
+; return: color (const char*) (rax)
+getBackgroundColor:
+    mov rax, background_color
     ret
