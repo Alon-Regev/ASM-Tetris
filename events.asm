@@ -33,7 +33,7 @@ section .data
     board: times board_length db 0
 
     piece_length: equ piece_size * piece_size
-    piece: times 16 db 1
+    piece: times 16 db 0
 
     piece_position:
     piece_x: dw 0

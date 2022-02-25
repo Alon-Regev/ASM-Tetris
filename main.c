@@ -1,7 +1,6 @@
 #include <X11/Xlib.h>
 #include <sys/time.h>
 #include <unistd.h>
-#include <stdio.h>
 
 #define FRAME_TIME_MICROSECONDS 25000
 

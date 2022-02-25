@@ -90,7 +90,7 @@ generatePiece:
     ; set position to 0, 0
     mov rbx, [rbp - local1]     ; position
     mov ecx, [start_position]
-    mov word [rbx], cx        ; position = start_position
+    mov dword [rbx], ecx        ; position = start_position
 
     mov rsp, rbp
     pop rbp
