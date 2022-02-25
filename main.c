@@ -1,6 +1,7 @@
 #include <X11/Xlib.h>
 #include <sys/time.h>
 #include <unistd.h>
+#include <stdio.h>
 
 #define FRAME_TIME_MICROSECONDS 25000
 
@@ -53,6 +54,7 @@ void gameLoop()
         {
         // key press event
         case KeyPress:
+            printf("%d\n", event.xkey.keycode);
             handleKeyPress(event.xkey.keycode);
             break;
         // check window close event
