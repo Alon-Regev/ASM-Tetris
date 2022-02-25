@@ -23,6 +23,7 @@ extern clearScreen
 extern randomColor
 extern getBackgroundColor
 extern move
+extern checkCollision
 
 extern srand
 extern time
@@ -44,6 +45,7 @@ section .data
     drop_speed: dw 40   ; once per second
 
 section .text
+
 ; event handler for updating the game state every frame
 ; called every frame by the game loop
 ; input: none
@@ -52,6 +54,7 @@ update:
     push rbp
     mov rbp, rsp
 
+    ; drop counter
     dec word [frames_to_drop]
     jnz dont_drop   ; if frames left == 0
     ; drop the piece (TEMP)
