@@ -6,6 +6,7 @@
 
 ; exported functions
 global generatePiece
+global move
 
 ; imported functions
 extern rand
@@ -93,4 +94,13 @@ generatePiece:
 
     mov rsp, rbp
     pop rbp
+    ret
+
+; function moves a piece
+; input:   position (word*) pointer to store position in      (rdi)
+;          direction (dword) direction to move piece (value)  (rsi)
+;               16 lsb - horizontal, 16 msb - vertical
+; return:  none
+move:
+    add dword [rdi], esi
     ret
