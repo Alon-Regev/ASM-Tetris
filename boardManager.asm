@@ -11,8 +11,8 @@ global generatePiece
 extern rand
 extern memcpy
 
+
 section .data
-format: db "%d", 0xa, 0
 
 ; all possible pieces
 ; each piece as a 4x4 matrix (bool[4][4])
@@ -54,11 +54,11 @@ piece7: db 0, 0, 0, 0
 
 ; array of pieces (bool[4][4][7])
 pieces: dq piece1, piece2, piece3, piece4, piece5, piece6, piece7
-piece_count: equ 7
+piece_count: equ ($-pieces)/8
 
 start_position: 
-start_position_x: db 0
-start_position_y: db 0
+start_position_x: dw 0
+start_position_y: dw 0
 
 section .text
 ; function generates a new piece
