@@ -25,6 +25,7 @@ extern freezePiece
 
 extern srand
 extern time
+extern exit
 
 section .data
     ; vars
@@ -39,8 +40,8 @@ section .data
     piece_y: db 0
     piece_color: dq 0
 
-    frames_to_drop: dw 40
-    drop_speed: dw 40   ; once per second
+    frames_to_drop: dw 20
+    drop_speed: dw 20   ; once per second
 
 section .text
 
@@ -85,6 +86,9 @@ dropUpdate:
     mov rsi, board
     mov dx, [piece_position]
     call freezePiece
+    ; check game over
+    cmp rax, 0  ; can't freeze, out of bounds
+    je drop_game_over
     
     ; generate a new piece
     mov rdi, piece
@@ -100,6 +104,12 @@ dont_freeze:
     mov [frames_to_drop], ax
 
 dont_drop:
+    mov rsp, rbp
+    pop rbp
+    ret
+
+drop_game_over:
+    call gameOver
     mov rsp, rbp
     pop rbp
     ret
@@ -174,3 +184,9 @@ init:
 
     ret
 
+; function ends the game
+; input: none
+; return: none
+gameOver:
+    mov rdi, 0
+    call exit

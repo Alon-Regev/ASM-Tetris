@@ -62,8 +62,8 @@ pieces: dq piece1, piece2, piece3, piece4, piece5, piece6, piece7
 piece_count: equ ($-pieces)/8
 
 start_position: 
-start_position_x: db 0
-start_position_y: db 0
+start_position_x: db 3
+start_position_y: db -3
 
 section .text
 ; function generates a new piece
@@ -155,10 +155,10 @@ start_loop_y:
         ; check if cell in board is also active (overlapping cells)
         mov rax, board_width
         mov dx, si
-        add dx, [rbp - local(2)]  ; y + y_offset
+        add dl, [rbp - local(2)]  ; y + y_offset
         mul dx     ; board_width * (y + y_offset)
         add ax, di
-        add ax, [rbp - local(1)]  ; ax = board_width * y + x      (index on board)
+        add al, [rbp - local(1)]  ; ax = board_width * y + x      (index on board)
 
         mov al, [rcx + rax]
         cmp al, 1
@@ -256,7 +256,7 @@ try_move_return:
 ; input:   piece (bool[4][4]) pointer to piece to freeze         (rdi)
 ;          board (bool[10][15]) pointer to board                 (rsi)
 ;          position (byte[2]) piece position in (dl, dh)         (dx)
-; return:  none
+; return:  whether or not the piece can be frozen (true unless out of bounds, meaning game is over)
 freezePiece:
     push rbp
     mov rbp, rsp
@@ -293,10 +293,14 @@ freeze_start_loop_y:
         
         add ax, di
         add al, byte [rbp - local(1)]  ; ax = board_width * y + x      (index on board)
-breakpoint:
-        ; TODO: check if cell is out of bounds (can't freeze, game over)
         ; set cell
         mov byte [rcx + rax], 1
+
+        ; if cell out of bounds (above screen), game over (return false)
+        mov ax, si  ; piece y
+        add al, byte [rbp - local(1) + 1]  ; y + y_offset
+        cmp al, 0
+        jl cant_freeze
 
     freeze_end_loop_x:
         ; inc x and cmp
@@ -309,7 +313,14 @@ breakpoint:
     cmp rsi, piece_size
     jl freeze_start_loop_y     ; while y < piece size
 
-
+    ; return true
+    mov rax, 1
+    mov rsp, rbp
+    pop rbp
+    ret
+cant_freeze:
+    ; return false
+    mov rax, 0
     mov rsp, rbp
     pop rbp
     ret
