@@ -8,7 +8,7 @@
 ; exported functions
 global generatePiece
 global tryMove
-global checkCollision
+global freezePiece
 
 ; imported functions
 extern rand
@@ -188,15 +188,6 @@ collision_detected:
     pop rbp
     ret
 
-; function moves a piece
-; input:   position (word*) pointer to store position in      (rdi)
-;          direction (word) direction to move piece (value)  (si)
-;               8 lsb - horizontal, 8 msb - vertical
-; return:  none
-move:
-    add word [rdi], si
-    ret
-
 ; function tries to move a piece. doensn't do anything if movement isn't possible. redraws the piece.
 ; input:   piece (bool[4][4]) pointer to piece to move         (rdi)
 ;          board (bool[10][15]) pointer to board               (rsi)
@@ -250,12 +241,74 @@ tryMove:
     call drawPiece
 
     ; return no collision
-    ;mov rax, 0
+    mov rax, 0
 
 try_move_return:
     ; negate return (no collision -> true, collision -> false)
-    ;neg rax
-    ;inc rax
+    neg rax
+    inc rax
+
+    mov rsp, rbp
+    pop rbp
+    ret
+
+; function freezes the piece in place on the board
+; input:   piece (bool[4][4]) pointer to piece to freeze         (rdi)
+;          board (bool[10][15]) pointer to board                 (rsi)
+;          position (byte[2]) piece position in (dl, dh)         (dx)
+; return:  none
+freezePiece:
+    push rbp
+    mov rbp, rsp
+    ; 1 local
+    sub rsp, 8
+    mov [rbp - local(1)], dx    ; position
+
+    ; set bases of piece and board
+    mov rbx, rdi
+    mov rcx, rsi
+
+    ; fill board with piece
+    mov rdi, 0  ; x index
+    mov rsi, 0  ; y index
+
+    ; loop over piece
+freeze_start_loop_y:
+    mov rdi, 0
+
+    freeze_start_loop_x:
+        mov rax, piece_size
+        mul rsi    ; piece_size * y
+        add rax, rdi ; piece_size * y + x   (piece index)
+        ; check if cell is active in piece
+        mov al, [rbx + rax] 
+        cmp al, 0
+        je freeze_end_loop_x   ; cell is inactive, continue
+
+        ; set cell active on board
+        mov rax, board_width
+        mov dx, si  ; y
+        add dl, byte [rbp - local(1) + 1]  ; y + y_offset
+        mul dx      ; board_width * (y + y_offset)
+        
+        add ax, di
+        add al, byte [rbp - local(1)]  ; ax = board_width * y + x      (index on board)
+breakpoint:
+        ; TODO: check if cell is out of bounds (can't freeze, game over)
+        ; set cell
+        mov byte [rcx + rax], 1
+
+    freeze_end_loop_x:
+        ; inc x and cmp
+        inc rdi
+        cmp rdi, piece_size
+        jl freeze_start_loop_x     ; while x < piece size
+    
+    ; inc y and cmp
+    inc rsi
+    cmp rsi, piece_size
+    jl freeze_start_loop_y     ; while y < piece size
+
 
     mov rsp, rbp
     pop rbp

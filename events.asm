@@ -18,12 +18,10 @@ global init
 
 ; imported functions
 extern generatePiece
-extern drawPiece
-extern clearScreen
 extern randomColor
-extern getBackgroundColor
+
 extern tryMove
-extern checkCollision
+extern freezePiece
 
 extern srand
 extern time
@@ -54,18 +52,54 @@ update:
     push rbp
     mov rbp, rsp
 
+    call dropUpdate
+
+    mov rsp, rbp
+    pop rbp
+    ret
+
+; function updates the drop state
+; input: none
+; return: none
+dropUpdate:
+    push rbp
+    mov rbp, rsp
+    sub rsp, 8
+
     ; drop counter
     dec word [frames_to_drop]
     jnz dont_drop   ; if frames left == 0
-    ; drop the piece (TEMP)
-    mov rdi, down_key
-    call handleKeyPress
+    ; drop the piece (using tryMove)
+    mov rdi, piece
+    mov rsi, board
+    mov rdx, piece_position
+    mov cx, 0x100      ; direction (0, 1)
+    mov r8, [piece_color]
+    call tryMove
+    ; check freeze (can't drop)
+    cmp rax, 1  ; can move
+    je dont_freeze  ; if moved, don't freeze
+
+    ; freeze the piece
+    mov rdi, piece
+    mov rsi, board
+    mov dx, [piece_position]
+    call freezePiece
+    
+    ; generate a new piece
+    mov rdi, piece
+    mov rsi, piece_position
+    call generatePiece
+    ; random color
+    call randomColor
+    mov [piece_color], rax
+
+dont_freeze:
     ; reset timer
     mov ax, [drop_speed]
     mov [frames_to_drop], ax
 
 dont_drop:
-
     mov rsp, rbp
     pop rbp
     ret
