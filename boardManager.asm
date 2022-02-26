@@ -9,6 +9,7 @@
 global generatePiece
 global tryMove
 global freezePiece
+global rotatePiece
 
 ; imported functions
 extern rand
@@ -321,6 +322,68 @@ freeze_start_loop_y:
 cant_freeze:
     ; return false
     mov rax, 0
+    mov rsp, rbp
+    pop rbp
+    ret
+
+; function rotates a piece.
+; input:   piece (bool[4][4]) pointer to piece to rotate         (rdi)
+; return:  none
+rotatePiece:
+    push rbp
+    mov rbp, rsp
+    ; 1 local variable
+    sub rsp, 16
+    ; 16 bit local for temp piece buffer
+    mov qword [rbp - local(2)], 0
+    mov qword [rbp - local(2) + 8], 0
+
+    ; set base of piece
+    mov rbx, rdi
+    
+    ; loop over piece  
+    mov rdi, 0  ; x index
+    mov rsi, 0  ; y index
+rotate_start_loop_y:
+    mov rdi, 0
+
+    rotate_start_loop_x:
+        mov rax, piece_size
+        mul rsi    ; piece_size * y
+        add rax, rdi ; piece_size * y + x   (piece index)
+        ; check if cell is active in piece
+        mov al, [rbx + rax] 
+        cmp al, 0
+        je rotate_end_loop_x   ; cell is inactive, continue
+
+        ; set cell active on temp piece
+        ; calculate new position (3 - y, x)
+        mov rax, piece_size
+        mov rcx, rdi    ; x
+        mul rcx         ; (0, x)
+        add rax, 3      ; (3, x)
+        sub rax, rsi    ; (3 - y, x)
+        ; set cell
+        mov byte [rbp - local(2) + rax], 1
+
+    rotate_end_loop_x:
+        ; inc x and cmp
+        inc rdi
+        cmp rdi, piece_size
+        jl rotate_start_loop_x     ; while x < piece size
+    
+    ; inc y and cmp
+    inc rsi
+    cmp rsi, piece_size
+    jl rotate_start_loop_y     ; while y < piece size
+
+    ; copy temp to piece
+    mov rdi, rbx
+    lea rsi, [rbp - local(2)]
+    mov rdx, 16
+    call memcpy
+
+    ; return
     mov rsp, rbp
     pop rbp
     ret
