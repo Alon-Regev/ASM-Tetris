@@ -21,8 +21,8 @@ extern generatePiece
 extern randomColor
 
 extern tryMove
+extern tryRotate
 extern freezePiece
-extern rotatePiece
 
 extern srand
 extern time
@@ -148,7 +148,10 @@ down:
 up:
     ; roatate piece
     mov rdi, piece
-    call rotatePiece
+    mov rsi, board
+    mov dx, [piece_position]
+    mov rcx, [piece_color]
+    call tryRotate
     jmp key_press_end
 
 switch_end:

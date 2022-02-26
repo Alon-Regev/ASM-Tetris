@@ -9,7 +9,7 @@
 global generatePiece
 global tryMove
 global freezePiece
-global rotatePiece
+global tryRotate
 
 ; imported functions
 extern rand
@@ -328,18 +328,23 @@ cant_freeze:
 
 ; function rotates a piece.
 ; input:   piece (bool[4][4]) pointer to piece to rotate         (rdi)
+;          direction (bool) direction to rotate piece            (si)
 ; return:  none
 rotatePiece:
     push rbp
     mov rbp, rsp
-    ; 1 local variable
-    sub rsp, 16
+    ; 2 local variable
+    sub rsp, 24
     ; 16 bit local for temp piece buffer
     mov qword [rbp - local(2)], 0
     mov qword [rbp - local(2) + 8], 0
 
+    mov [rbp - local(3)], si
+
     ; set base of piece
     mov rbx, rdi
+    ; store direction
+    mov cx, si
     
     ; loop over piece  
     mov rdi, 0  ; x index
@@ -363,6 +368,14 @@ rotate_start_loop_y:
         mul rcx         ; (0, x)
         add rax, 3      ; (3, x)
         sub rax, rsi    ; (3 - y, x)
+
+        ; check direction
+        cmp word [rbp - local(3)], 0 
+        je dont_flip
+        ; flip piece - index -> (15 - index)
+        neg rax
+        add rax, 15
+    dont_flip:
         ; set cell
         mov byte [rbp - local(2) + rax], 1
 
@@ -384,6 +397,81 @@ rotate_start_loop_y:
     call memcpy
 
     ; return
+    mov rsp, rbp
+    pop rbp
+    ret
+
+; function tries to rotate a piece. if it can't, it changes nothing. redraws if needed.
+; input:   piece (bool[4][4]) pointer to piece to rotate         (rdi)
+;          board (bool[10][15]) pointer to board                 (rsi)
+;          position (byte[2]) piece position in (dl, dh)         (dx)
+;          color (const char*) color of piece                    (rcx)
+; return:  whether or not the piece can be rotated
+tryRotate:
+    push rbp
+    mov rbp, rsp
+    ; 4 locals
+    sub rsp, 32
+    mov [rbp - local(1)], rdi   ; piece
+    mov [rbp - local(2)], rsi   ; board
+    mov [rbp - local(3)], dx    ; position
+    mov [rbp - local(4)], rcx   ; color
+
+    mov rdi, [rbp - local(1)]   ; piece
+    mov si, 0
+    call rotatePiece
+    
+    ; check collision
+    mov rdi, [rbp - local(1)]   ; piece
+    mov rsi, [rbp - local(2)]   ; board
+    mov dx, [rbp - local(3)]    ; position
+    call checkCollision
+    ; if collision, return to original position and return false
+    cmp rax, 1
+    je rotate_collision
+
+    ; back to original position
+    mov rdi, [rbp - local(1)]   ; piece
+    mov si, 1
+    call rotatePiece
+
+    ; delete piece with drawPiece
+    call getBackgroundColor
+    mov rcx, rax
+    mov rdi, [rbp - local(1)]   ; piece
+    mov dx, [rbp - local(3)]    ; position
+    movsx rsi, dl
+    mov al, dh
+    movsx rdx, al
+    call drawPiece
+
+    ; rotate again and redraw
+    mov rdi, [rbp - local(1)]   ; piece
+    mov si, 0
+    call rotatePiece
+
+    ; redraw
+    mov rdi, [rbp - local(1)]   ; piece
+    mov dx, [rbp - local(3)]   ; position
+    movsx rsi, dl
+    mov al, dh
+    movsx rdx, al
+    mov rcx, [rbp - local(4)]   ; color
+    call drawPiece
+
+    ; return
+    mov rsp, rbp
+    pop rbp
+    ret
+
+rotate_collision:
+    ; rotate back
+    mov rdi, [rbp - local(1)]   ; piece
+    mov si, 1
+    call rotatePiece
+
+    ; return false
+    mov rax, 0
     mov rsp, rbp
     pop rbp
     ret
