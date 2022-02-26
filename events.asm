@@ -3,7 +3,7 @@
 
 %define piece_size 4
 
-%define local1 8
+%define local(x) x * 8
 
 ; key codes
 %define left_key 113
@@ -22,7 +22,7 @@ extern drawPiece
 extern clearScreen
 extern randomColor
 extern getBackgroundColor
-extern move
+extern tryMove
 extern checkCollision
 
 extern srand
@@ -37,8 +37,8 @@ section .data
     piece: times 16 db 0
 
     piece_position:
-    piece_x: dw 0
-    piece_y: dw 0
+    piece_x: db 0
+    piece_y: db 0
     piece_color: dq 0
 
     frames_to_drop: dw 40
@@ -79,9 +79,6 @@ handleKeyPress:
     mov rbp, rsp
     sub rsp, 8
 
-    ; save direction in bx (ah, al) = (x, y)
-    xor rax, rax
-
     ; switch key code (rdi)
     cmp rdi, left_key
     je left
@@ -95,41 +92,26 @@ handleKeyPress:
     jmp switch_end
     
 left:
-    mov eax, -0x1
+    mov cx, -0x1
     jmp switch_end
 right:
-    mov eax, 0x1
+    mov cx, 0x1
     jmp switch_end
 down:
-    mov eax, 0x10000
+    mov cx, 0x100
     jmp switch_end
 up:
-    mov eax, -0x10000
+    mov cx, -0x100
     jmp switch_end
 
 switch_end:
-    mov [rbp - local1], rax    ; save direction
-    ; delete piece with drawPiece
-    call getBackgroundColor
-    mov rsi, 0
-    mov rdx, 0
+    ; try to move the piece
     mov rdi, piece
-    mov si, [piece_x]
-    mov dx, [piece_y]
-    mov rcx, rax
-    call drawPiece
-
-    ; move in direction
-    mov rdi, piece_position
-    mov rsi, [rbp - local1]     ; direction
-    call move
-
-    ; redraw piece
-    mov rdi, piece
-    mov si, [piece_x]
-    mov dx, [piece_y]
-    mov rcx, [piece_color]
-    call drawPiece
+    mov rsi, board
+    mov rdx, piece_position
+    ; direction in cx
+    mov r8, [piece_color]
+    call tryMove
 
     mov rsp, rbp
     pop rbp

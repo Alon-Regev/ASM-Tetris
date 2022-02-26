@@ -4,9 +4,7 @@
 %define window_width 300
 %define window_height 450 
 
-%define local1 8
-%define local2 16
-%define local3 24
+%define local(x) x * 8
 
 ; exported functions
 global drawPiece
@@ -43,22 +41,22 @@ section .data
 section .text
 ; funciton draws a piece on the screen
 ; input: piece (bool[][]) - the piece to draw           (rdi)
-;        x (int) - the x coordinate of the piece        (rsi)
-;        y (int) - the y coordinate of the piece        (rdx)
+;        x (byte) - the x coordinate of the piece       (rsi)
+;        y (byte) - the y coordinate of the piece       (rdx)
 ;        color (const char*) - the color of the piece   (rcx)
 ; output: none
 drawPiece:
     push rbp
     push rsp
     mov rbp, rsp
-    ; 3 local variables (offset_x, offset_y, color
+    ; 3 local variables (offset_x, offset_y, color)
     sub rsp, 32
-    mov [rbp - local3], rcx
+    mov [rbp - local(3)], rcx
 
     ; iterate over piece
     ; save x and y offsets
-    mov [rbp - local1], rsi    ; x offset
-    mov [rbp - local2], rdx    ; y offset
+    mov [rbp - local(1)], rsi    ; x offset
+    mov [rbp - local(2)], rdx    ; y offset
     ; iterate over piece
     mov rbx, rdi    ; piece 
     mov rdi, 0  ; x coordinate
@@ -78,13 +76,13 @@ start_loop_y:
         ; check if cell is active
         cmp dl, 0
         je dont_draw_cell
-        ; draw cell at position (rdi + local1, rsi + local2)
+        ; draw cell at position (rdi + local(1), rsi + local(2))
         push rdi
         push rsi
 
-        add rdi, [rbp - local1]
-        add rsi, [rbp - local2]
-        mov rdx, [rbp - local3]
+        add rdi, [rbp - local(1)]
+        add rsi, [rbp - local(2)]
+        mov rdx, [rbp - local(3)]
         call drawCell
 
         pop rsi
