@@ -3,7 +3,7 @@
 
 %define piece_size 4
 
-%define local1 8
+%define local(x) x * 8
 
 ; key codes
 %define left_key 113
@@ -18,14 +18,14 @@ global init
 
 ; imported functions
 extern generatePiece
-extern drawPiece
-extern clearScreen
 extern randomColor
-extern getBackgroundColor
-extern move
+
+extern tryMove
+extern freezePiece
 
 extern srand
 extern time
+extern exit
 
 section .data
     ; vars
@@ -36,14 +36,15 @@ section .data
     piece: times 16 db 0
 
     piece_position:
-    piece_x: dw 0
-    piece_y: dw 0
+    piece_x: db 0
+    piece_y: db 0
     piece_color: dq 0
 
-    frames_to_drop: dw 40
-    drop_speed: dw 40   ; once per second
+    frames_to_drop: dw 20
+    drop_speed: dw 20   ; once per second
 
 section .text
+
 ; event handler for updating the game state every frame
 ; called every frame by the game loop
 ; input: none
@@ -52,17 +53,63 @@ update:
     push rbp
     mov rbp, rsp
 
+    call dropUpdate
+
+    mov rsp, rbp
+    pop rbp
+    ret
+
+; function updates the drop state
+; input: none
+; return: none
+dropUpdate:
+    push rbp
+    mov rbp, rsp
+    sub rsp, 8
+
+    ; drop counter
     dec word [frames_to_drop]
     jnz dont_drop   ; if frames left == 0
-    ; drop the piece (TEMP)
-    mov rdi, down_key
-    call handleKeyPress
+    ; drop the piece (using tryMove)
+    mov rdi, piece
+    mov rsi, board
+    mov rdx, piece_position
+    mov cx, 0x100      ; direction (0, 1)
+    mov r8, [piece_color]
+    call tryMove
+    ; check freeze (can't drop)
+    cmp rax, 1  ; can move
+    je dont_freeze  ; if moved, don't freeze
+
+    ; freeze the piece
+    mov rdi, piece
+    mov rsi, board
+    mov dx, [piece_position]
+    call freezePiece
+    ; check game over
+    cmp rax, 0  ; can't freeze, out of bounds
+    je drop_game_over
+    
+    ; generate a new piece
+    mov rdi, piece
+    mov rsi, piece_position
+    call generatePiece
+    ; random color
+    call randomColor
+    mov [piece_color], rax
+
+dont_freeze:
     ; reset timer
     mov ax, [drop_speed]
     mov [frames_to_drop], ax
 
 dont_drop:
+    mov rsp, rbp
+    pop rbp
+    ret
 
+drop_game_over:
+    call gameOver
     mov rsp, rbp
     pop rbp
     ret
@@ -75,9 +122,6 @@ handleKeyPress:
     push rbp
     mov rbp, rsp
     sub rsp, 8
-
-    ; save direction in bx (ah, al) = (x, y)
-    xor rax, rax
 
     ; switch key code (rdi)
     cmp rdi, left_key
@@ -92,41 +136,26 @@ handleKeyPress:
     jmp switch_end
     
 left:
-    mov eax, -0x1
+    mov cx, -0x1
     jmp switch_end
 right:
-    mov eax, 0x1
+    mov cx, 0x1
     jmp switch_end
 down:
-    mov eax, 0x10000
+    mov cx, 0x100
     jmp switch_end
 up:
-    mov eax, -0x10000
+    mov cx, -0x100
     jmp switch_end
 
 switch_end:
-    mov [rbp - local1], rax    ; save direction
-    ; delete piece with drawPiece
-    call getBackgroundColor
-    mov rsi, 0
-    mov rdx, 0
+    ; try to move the piece
     mov rdi, piece
-    mov si, [piece_x]
-    mov dx, [piece_y]
-    mov rcx, rax
-    call drawPiece
-
-    ; move in direction
-    mov rdi, piece_position
-    mov rsi, [rbp - local1]     ; direction
-    call move
-
-    ; redraw piece
-    mov rdi, piece
-    mov si, [piece_x]
-    mov dx, [piece_y]
-    mov rcx, [piece_color]
-    call drawPiece
+    mov rsi, board
+    mov rdx, piece_position
+    ; direction in cx
+    mov r8, [piece_color]
+    call tryMove
 
     mov rsp, rbp
     pop rbp
@@ -155,3 +184,9 @@ init:
 
     ret
 
+; function ends the game
+; input: none
+; return: none
+gameOver:
+    mov rdi, 0
+    call exit
