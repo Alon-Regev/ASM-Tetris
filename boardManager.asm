@@ -137,11 +137,11 @@ start_loop_y:
         ; check if cell is out of bounds
         ; check x
         mov ax, di
-        add ax, [rbp - local(1)]     ; x + x_offset
+        add al, [rbp - local(1)]     ; x + x_offset
         ; check that 0 <= x < board_width
-        cmp ax, board_width
+        cmp al, board_width
         jge collision_detected
-        cmp ax, 0
+        cmp al, 0
         jl collision_detected
         ; check y
         mov ax, si
