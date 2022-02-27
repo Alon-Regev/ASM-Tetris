@@ -10,6 +10,7 @@
 %define right_key 114
 %define down_key 116
 %define up_key 111
+%define space_key 65
 
 ; exported event handlers
 global update
@@ -23,6 +24,7 @@ extern randomColor
 extern tryMove
 extern tryRotate
 extern freezePiece
+extern hardDrop
 
 extern srand
 extern time
@@ -133,6 +135,8 @@ handleKeyPress:
     je down
     cmp rdi, up_key
     je up
+    cmp rdi, space_key
+    je space
     ; default: do nothing
     jmp switch_end
     
@@ -152,6 +156,14 @@ up:
     mov dx, [piece_position]
     mov rcx, [piece_color]
     call tryRotate
+    jmp key_press_end
+space:
+    ; hard drop
+    mov rdi, piece
+    mov rsi, board
+    mov rdx, piece_position
+    mov rcx, [piece_color]
+    call hardDrop
     jmp key_press_end
 
 switch_end:
