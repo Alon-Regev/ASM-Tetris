@@ -25,6 +25,7 @@ extern tryMove
 extern tryRotate
 extern freezePiece
 extern hardDrop
+extern clearLines
 
 extern srand
 extern time
@@ -92,6 +93,10 @@ dropUpdate:
     ; check game over
     cmp rax, 0  ; can't freeze, out of bounds
     je drop_game_over
+
+    ; clear lines
+    mov rdi, board
+    call clearLines
     
     ; generate a new piece
     mov rdi, piece

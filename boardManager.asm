@@ -11,10 +11,12 @@ global tryMove
 global freezePiece
 global tryRotate
 global hardDrop
+global clearLines
 
 ; imported functions
 extern rand
 extern memcpy
+extern memmove
 extern drawPiece
 extern getBackgroundColor
 
@@ -505,6 +507,64 @@ hard_drop_loop:
     cmp rax, 1
     je hard_drop_loop   ; while drop succeeded
 
+    mov rsp, rbp
+    pop rbp
+    ret
+
+; function clears lines if needed
+; input:   board (bool[10][15]) pointer to board    (rdi)
+; return:  number of lines cleared
+clearLines:
+    push rbp
+    mov rbp, rsp
+    
+    ; save current line in rbx
+    mov rbx, rdi
+    ; board in rcx
+    mov rcx, rdi
+
+    ; go over all lines in board
+    mov rdi, 0  ; x index
+    mov rsi, 0  ; y index
+    mov rax, 0  ; number of lines cleared
+
+clear_loop_y:
+    ; go over all cells in line
+    mov rdi, 0
+    clear_loop_x:
+        ; check if cell is inactive
+        mov al, [rbx + rdi]
+        cmp al, 0
+        je clear_loop_y_end   ; cell is inactive, jump to next line
+
+        ; if active, continue to next cell
+        inc rdi
+        cmp rdi, board_width
+        jl clear_loop_x
+    ; if line is full, clear it
+    inc rax
+    ; shift lines (using memmove)
+    ; memmove(board + width, board, rbx - board)
+    push rsi
+    push rax
+
+    mov rdx, rbx
+    sub rdx, rcx    ; rbx - board (copy size)
+    mov rdi, rcx
+    add rdi, board_width
+    mov rsi, rcx
+    call memmove
+
+    pop rax
+    pop rsi
+
+clear_loop_y_end:
+    ; move to next line
+    inc rsi
+    add rbx, board_width
+    cmp rsi, board_height
+    jl clear_loop_y
+        
     mov rsp, rbp
     pop rbp
     ret
