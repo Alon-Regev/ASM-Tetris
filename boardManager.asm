@@ -10,13 +10,13 @@ global generatePiece
 global tryMove
 global freezePiece
 global tryRotate
+global hardDrop
 
 ; imported functions
 extern rand
 extern memcpy
 extern drawPiece
 extern getBackgroundColor
-
 
 section .data
 
@@ -472,6 +472,39 @@ rotate_collision:
 
     ; return false
     mov rax, 0
+    mov rsp, rbp
+    pop rbp
+    ret
+
+; function hard drops piece (without freezing)
+; input:   piece (bool[4][4]) pointer to piece to rotate         (rdi)
+;          board (bool[10][15]) pointer to board                 (rsi)
+;          position (byte[2]) pointer to piece position          (rdx)
+;          color (const char*) color of piece                    (rcx)
+; return:  none
+hardDrop:
+    push rbp
+    mov rbp, rsp
+    ; 4 local variables
+    sub rsp, 32
+    mov [rbp - local(1)], rdi   ; piece
+    mov [rbp - local(2)], rsi   ; board
+    mov [rbp - local(3)], rdx   ; position
+    mov [rbp - local(4)], rcx   ; color
+
+    ; try move down until not possible
+hard_drop_loop:
+    ; try move
+    mov rdi, [rbp - local(1)]   ; piece
+    mov rsi, [rbp - local(2)]   ; board
+    mov rdx, [rbp - local(3)]   ; 
+    mov cx, 0x100               ; direction
+    mov r8, [rbp - local(4)]    ; color
+    call tryMove
+    ; check if move succeeded
+    cmp rax, 1
+    je hard_drop_loop   ; while drop succeeded
+
     mov rsp, rbp
     pop rbp
     ret
