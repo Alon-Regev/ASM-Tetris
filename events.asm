@@ -62,10 +62,6 @@ update:
 
     call dropUpdate
 
-    ; draw score
-    mov edi, [score]
-    call drawScore
-
     mov rsp, rbp
     pop rbp
     ret
@@ -176,6 +172,9 @@ space:
     mov rdx, piece_position
     mov rcx, [piece_color]
     call hardDrop
+    ; add score
+    mov rdi, rax    ; score
+    call addScore
     jmp key_press_end
 
 switch_end:
@@ -221,3 +220,22 @@ init:
 gameOver:
     mov rdi, 0
     call exit
+
+; function adds score
+; input: score as unsigned integer   (edi)
+; return: none
+addScore:
+    push rbp
+    mov rbp, rsp
+    sub rsp, 8
+
+    ; add score
+    add dword[score], edi
+    
+    ; draw score
+    mov edi, [score]
+    call drawScore
+
+    mov rsp, rbp
+    pop rbp
+    ret

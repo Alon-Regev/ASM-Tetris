@@ -49,6 +49,8 @@ section .data
     score_color: db "white", 0
     score_offset_x: dw 10
     score_offset_y: dw 20
+    score_width: dw 80
+    score_height: dw 15
 
 section .text
 ; funciton draws a piece on the screen
@@ -236,7 +238,15 @@ drawScore:
     mov rsi, score_format   ; format
     mov rdx, [rbp - local(1)]   ; score
     call sprintf
-    
+
+    ; clear previous score text using drawRect
+    mov rdi, [score_offset_x]
+    mov rsi, 0
+    mov rdx, [score_width]
+    mov rcx, board_offset
+    mov r8, background_color
+    call drawRect
+
     ; draw score
     ; void drawText(int x, int y, const char *text, const char *color)
     mov rdi, [score_offset_x]
