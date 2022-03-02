@@ -25,6 +25,7 @@ extern tryMove
 extern tryRotate
 extern freezePiece
 extern hardDrop
+extern clearLines
 
 extern srand
 extern time
@@ -32,7 +33,7 @@ extern exit
 
 section .data
     ; vars
-    board_length: equ board_width * board_height
+    board_length: equ board_width * board_height 
     board: times board_length db 0
 
     piece_length: equ piece_size * piece_size
@@ -44,7 +45,7 @@ section .data
     piece_color: dq 0
 
     frames_to_drop: dw 20
-    drop_speed: dw 20   ; once per second
+    drop_speed: dw 4   ; once per second
 
 section .text
 
@@ -92,6 +93,10 @@ dropUpdate:
     ; check game over
     cmp rax, 0  ; can't freeze, out of bounds
     je drop_game_over
+
+    ; clear lines
+    mov rdi, board
+    call clearLines
     
     ; generate a new piece
     mov rdi, piece

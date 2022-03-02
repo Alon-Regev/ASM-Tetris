@@ -119,6 +119,17 @@ void drawText(int x, int y, const char *text, const char *color)
     XDrawString(display, window, gc, x, y, text, strlen(text));
 }
 
+// function copies one area of the screen to another area
+// input: src_x, src_y: the coordinates of the top left corner of the area to copy
+//        dst_x, dst_y: the coordinates of the top left corner of the area to paste
+//        w, h: the width and height of the area to copy
+// return: none
+void copyArea(int src_x, int src_y, int dst_x, int dst_y, int w, int h)
+{
+    XCopyArea(display, window, window, DefaultGC(display, screen),
+              src_x, src_y, w, h, dst_x, dst_y);
+}
+
 // method clears the screen
 // input: none
 // return: none

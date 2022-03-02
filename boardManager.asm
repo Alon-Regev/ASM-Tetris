@@ -11,12 +11,16 @@ global tryMove
 global freezePiece
 global tryRotate
 global hardDrop
+global clearLines
 
 ; imported functions
 extern rand
 extern memcpy
+extern memmove
 extern drawPiece
 extern getBackgroundColor
+extern lineClearRedraw
+
 
 section .data
 
@@ -505,6 +509,65 @@ hard_drop_loop:
     cmp rax, 1
     je hard_drop_loop   ; while drop succeeded
 
+    mov rsp, rbp
+    pop rbp
+    ret
+
+; function clears lines if needed
+; input:   board (bool[10][15]) pointer to board    (rdi)
+; return:  number of lines cleared
+clearLines:
+    push rbp
+    mov rbp, rsp
+    ; 4 locals
+    sub rsp, 32
+    mov qword [rbp - local(1)], 0   ; number of lines cleared
+    mov [rbp - local(2)], rdi   ; board
+    mov qword [rbp - local(3)], 0   ; y
+    mov [rbp - local(4)], rdi   ; current line
+
+    ; go over all lines in board
+clear_loop_y:
+    ; go over all cells in line
+    mov rdi, 0
+    mov rbx, [rbp - local(4)]   ; current line
+    clear_loop_x:
+        ; check if cell is inactive
+        mov al, [rbx + rdi]
+        cmp al, 0
+        je clear_loop_y_end   ; cell is inactive, jump to next line
+
+        ; if active, continue to next cell
+        inc rdi
+        cmp rdi, board_width
+        jl clear_loop_x
+    ; if line is full, clear it
+    inc word [rbp - local(1)]   ; clear count
+
+    ; shift lines (using memmove)
+    ; memmove(board + width, board, currentLine - board)
+    mov rdi, [rbp - local(2)]
+    add rdi, board_width        ; board + width
+    mov rsi, [rbp - local(2)]   ; board
+
+    mov rdx, [rbp - local(4)]   ; current line
+    sub rdx, [rbp - local(2)]    ; current - board (copy size)
+
+    call memmove
+
+    ; line clear redraw
+breakpoint:
+    mov rdi, [rbp - local(3)]   ; y index
+    call lineClearRedraw
+
+clear_loop_y_end:
+    ; move to next line
+    inc qword [rbp - local(3)]   ; y
+    add qword [rbp - local(4)], board_width     ; change current line
+    cmp qword [rbp - local(3)], board_height
+    jl clear_loop_y
+        
+    mov rax, [rbp - local(1)]   ; return number of lines cleared
     mov rsp, rbp
     pop rbp
     ret
