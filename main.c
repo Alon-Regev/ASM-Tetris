@@ -14,6 +14,8 @@ extern void update();
 extern void handleKeyPress(uint keyCode);
 extern void init();
 
+void copyArea(int src_x, int src_y, int dst_x, int dst_y, int w, int h);
+
 void gameLoop();
 void waitForNextFrame();
 

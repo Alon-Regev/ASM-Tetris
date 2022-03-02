@@ -19,6 +19,8 @@ extern memcpy
 extern memmove
 extern drawPiece
 extern getBackgroundColor
+extern lineClearRedraw
+
 
 section .data
 
@@ -517,20 +519,18 @@ hard_drop_loop:
 clearLines:
     push rbp
     mov rbp, rsp
-    
-    ; save current line in rbx
-    mov rbx, rdi
-    ; board in rcx
-    mov rcx, rdi
+    ; 4 locals
+    sub rsp, 32
+    mov qword [rbp - local(1)], 0   ; number of lines cleared
+    mov [rbp - local(2)], rdi   ; board
+    mov qword [rbp - local(3)], 0   ; y
+    mov [rbp - local(4)], rdi   ; current line
 
     ; go over all lines in board
-    mov rdi, 0  ; x index
-    mov rsi, 0  ; y index
-    mov rax, 0  ; number of lines cleared
-
 clear_loop_y:
     ; go over all cells in line
     mov rdi, 0
+    mov rbx, [rbp - local(4)]   ; current line
     clear_loop_x:
         ; check if cell is inactive
         mov al, [rbx + rdi]
@@ -542,29 +542,32 @@ clear_loop_y:
         cmp rdi, board_width
         jl clear_loop_x
     ; if line is full, clear it
-    inc rax
-    ; shift lines (using memmove)
-    ; memmove(board + width, board, rbx - board)
-    push rsi
-    push rax
+    inc word [rbp - local(1)]   ; clear count
 
-    mov rdx, rbx
-    sub rdx, rcx    ; rbx - board (copy size)
-    mov rdi, rcx
-    add rdi, board_width
-    mov rsi, rcx
+    ; shift lines (using memmove)
+    ; memmove(board + width, board, currentLine - board)
+    mov rdi, [rbp - local(2)]
+    add rdi, board_width        ; board + width
+    mov rsi, [rbp - local(2)]   ; board
+
+    mov rdx, [rbp - local(4)]   ; current line
+    sub rdx, [rbp - local(2)]    ; current - board (copy size)
+
     call memmove
 
-    pop rax
-    pop rsi
+    ; line clear redraw
+breakpoint:
+    mov rdi, [rbp - local(3)]   ; y index
+    call lineClearRedraw
 
 clear_loop_y_end:
     ; move to next line
-    inc rsi
-    add rbx, board_width
-    cmp rsi, board_height
+    inc qword [rbp - local(3)]   ; y
+    add qword [rbp - local(4)], board_width     ; change current line
+    cmp qword [rbp - local(3)], board_height
     jl clear_loop_y
         
+    mov rax, [rbp - local(1)]   ; return number of lines cleared
     mov rsp, rbp
     pop rbp
     ret

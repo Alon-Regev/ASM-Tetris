@@ -10,11 +10,13 @@
 global drawPiece
 global randomColor
 global getBackgroundColor
+global lineClearRedraw
 
 ; imported functions
 extern drawRect
 extern printf
 extern rand
+extern copyArea
 
 
 section .data
@@ -165,4 +167,44 @@ randomColor:
 ; return: color (const char*) (rax)
 getBackgroundColor:
     mov rax, background_color
+    ret
+
+; function redraws the board after a line clear
+; input: y (int) - the y coordinate of the cleared line (rdi)
+; return: none
+lineClearRedraw:
+    push rbp
+    mov rbp, rsp
+    ; 1 local
+    sub rsp, 8
+    mov [rbp - local(1)], rdi   ; y to clear
+
+    ; move lines down using copyArea
+    ; copy from (0, 0) to (0, cellSize) chunk size (window_width, y * cellSize)
+    mov rdi, 0
+    mov rsi, 0
+
+    mov rdx, 0
+    mov rcx, cell_size_full
+    
+    mov r8, window_width
+    mov rax, [rbp - local(1)]
+    mov rbx, cell_size_full
+    mul rbx
+    mov rbx, rax    ; y * cellSize
+    mov r9, rbx
+
+    call copyArea
+
+    ; clear top line using drawRect
+    mov rdi, 0  ; x
+    mov rsi, 0  ; y
+    mov rdx, window_width   ; w
+    mov rcx, cell_size_full ; h
+    mov r8, background_color
+    call drawRect
+
+    ; return
+    mov rsp, rbp
+    pop rbp
     ret

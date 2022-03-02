@@ -33,7 +33,7 @@ extern exit
 
 section .data
     ; vars
-    board_length: equ board_width * board_height
+    board_length: equ board_width * board_height 
     board: times board_length db 0
 
     piece_length: equ piece_size * piece_size
@@ -45,7 +45,7 @@ section .data
     piece_color: dq 0
 
     frames_to_drop: dw 20
-    drop_speed: dw 20   ; once per second
+    drop_speed: dw 4   ; once per second
 
 section .text
 
