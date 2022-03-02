@@ -20,6 +20,7 @@ global init
 ; imported functions
 extern generatePiece
 extern randomColor
+extern drawScore
 
 extern tryMove
 extern tryRotate
@@ -45,7 +46,9 @@ section .data
     piece_color: dq 0
 
     frames_to_drop: dw 20
-    drop_speed: dw 4   ; once per second
+    drop_speed: dw 10   ; once per second
+
+    score: dd 0
 
 section .text
 
@@ -58,6 +61,10 @@ update:
     mov rbp, rsp
 
     call dropUpdate
+
+    ; draw score
+    mov edi, [score]
+    call drawScore
 
     mov rsp, rbp
     pop rbp

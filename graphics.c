@@ -5,7 +5,7 @@
 #include <string.h>
 
 #define WINDOW_WIDTH 300
-#define WINDOW_HEIGHT 450
+#define WINDOW_HEIGHT 480
 
 // graphics globals
 Atom wmDeleteMessage;
