@@ -20,6 +20,7 @@ global init
 ; imported functions
 extern generatePiece
 extern randomColor
+extern drawScore
 
 extern tryMove
 extern tryRotate
@@ -45,7 +46,10 @@ section .data
     piece_color: dq 0
 
     frames_to_drop: dw 20
-    drop_speed: dw 4   ; once per second
+    drop_speed: dw 15   ; once per second
+
+    score: dd 0
+    line_clear_scores: dd 0, 60, 150, 350, 750
 
 section .text
 
@@ -93,10 +97,16 @@ dropUpdate:
     ; check game over
     cmp rax, 0  ; can't freeze, out of bounds
     je drop_game_over
+    ; add score
+    mov rdi, 4
+    call addScore
 
     ; clear lines
     mov rdi, board
     call clearLines
+    ; add score
+    mov rdi, [line_clear_scores + rax * 4]
+    call addScore
     
     ; generate a new piece
     mov rdi, piece
@@ -152,8 +162,24 @@ right:
     mov cx, 0x1
     jmp switch_end
 down:
-    mov cx, 0x100
-    jmp switch_end
+    ; try to move the piece
+    mov rdi, piece
+    mov rsi, board
+    mov rdx, piece_position
+    mov rcx, 0x100
+    mov r8, [piece_color]
+    call tryMove
+    ; if moved, reset timer and add score
+    cmp rax, 0
+    je key_press_end
+    ; reset timer
+    mov ax, [drop_speed]
+    mov [frames_to_drop], ax
+    ; add score
+    mov rdi, 1
+    call addScore
+
+    jmp key_press_end
 up:
     ; roatate piece
     mov rdi, piece
@@ -169,6 +195,20 @@ space:
     mov rdx, piece_position
     mov rcx, [piece_color]
     call hardDrop
+
+    cmp rax, 0
+    je key_press_end
+    ; add score
+    mov rdi, 3
+    mul rdi
+    mov rdi, 2
+    div rdi     ; cells * 1.5
+    mov rdi, rax    ; score
+    call addScore
+    ; reset timer
+    mov ax, [drop_speed]
+    mov [frames_to_drop], ax
+
     jmp key_press_end
 
 switch_end:
@@ -214,3 +254,22 @@ init:
 gameOver:
     mov rdi, 0
     call exit
+
+; function adds score
+; input: score as unsigned integer   (edi)
+; return: none
+addScore:
+    push rbp
+    mov rbp, rsp
+    sub rsp, 8
+
+    ; add score
+    add dword[score], edi
+
+    ; draw score
+    mov edi, [score]
+    call drawScore
+
+    mov rsp, rbp
+    pop rbp
+    ret

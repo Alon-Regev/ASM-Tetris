@@ -485,19 +485,21 @@ rotate_collision:
 ;          board (bool[10][15]) pointer to board                 (rsi)
 ;          position (byte[2]) pointer to piece position          (rdx)
 ;          color (const char*) color of piece                    (rcx)
-; return:  none
+; return:  number of lines dropped
 hardDrop:
     push rbp
     mov rbp, rsp
-    ; 4 local variables
-    sub rsp, 32
+    ; 5 local variables
+    sub rsp, 48
     mov [rbp - local(1)], rdi   ; piece
     mov [rbp - local(2)], rsi   ; board
     mov [rbp - local(3)], rdx   ; position
     mov [rbp - local(4)], rcx   ; color
+    mov qword [rbp - local(5)], 0    ; number of lines dropped
 
     ; try move down until not possible
 hard_drop_loop:
+    inc qword [rbp - local(5)]
     ; try move
     mov rdi, [rbp - local(1)]   ; piece
     mov rsi, [rbp - local(2)]   ; board
@@ -508,6 +510,10 @@ hard_drop_loop:
     ; check if move succeeded
     cmp rax, 1
     je hard_drop_loop   ; while drop succeeded
+
+    ; return number of lines dropped
+    dec qword [rbp - local(5)]
+    mov rax, [rbp - local(5)]
 
     mov rsp, rbp
     pop rbp

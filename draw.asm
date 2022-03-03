@@ -2,7 +2,8 @@
 %define board_height 15
 %define piece_size 4
 %define window_width 300
-%define window_height 450 
+%define window_height 480
+%define board_offset 30     ; offset from top of window
 
 %define local(x) x * 8
 
@@ -11,17 +12,20 @@ global drawPiece
 global randomColor
 global getBackgroundColor
 global lineClearRedraw
+global drawScore
 
 ; imported functions
 extern drawRect
 extern printf
 extern rand
 extern copyArea
+extern drawText
+extern sprintf
 
 
 section .data
     ; constants
-    cell_size_full: equ window_height / board_height    ; the height constraints the cell size
+    cell_size_full: equ (window_height - board_offset) / board_height    ; the height constraints the cell size
     border_one_side: equ 2
 
     border: equ border_one_side * 2
@@ -39,6 +43,14 @@ section .data
 
     colors: dq color_red, color_yellow, color_green, color_blue, color_pink, color_cyan
     color_count: equ ($-colors)/8
+
+    score_format: db "Score: %d", 0
+    score_text: times 20 db 0
+    score_color: db "white", 0
+    score_offset_x: dw 10
+    score_offset_y: dw 20
+    score_width: dw 80
+    score_height: dw 15
 
 section .text
 ; funciton draws a piece on the screen
@@ -134,6 +146,7 @@ drawCell:
     mov rax, rsi
     mov rdx, cell_size_full
     mul rdx     ; y * cell_size_full
+    add rax, board_offset
     add rax, border_one_side ; add space for border
     mov rsi, rax
 
@@ -192,17 +205,55 @@ lineClearRedraw:
     mov rbx, cell_size_full
     mul rbx
     mov rbx, rax    ; y * cellSize
+    add rbx, board_offset
     mov r9, rbx
 
     call copyArea
 
     ; clear top line using drawRect
     mov rdi, 0  ; x
-    mov rsi, 0  ; y
+    mov rsi, board_offset  ; y
     mov rdx, window_width   ; w
     mov rcx, cell_size_full ; h
     mov r8, background_color
     call drawRect
+
+    ; return
+    mov rsp, rbp
+    pop rbp
+    ret
+
+; function draws score on the screen
+; input: score (int) - the score to draw (edi)
+; return: none
+drawScore:
+    push rbp
+    mov rbp, rsp
+    ; 1 local
+    sub rsp, 16
+    mov [rbp - local(1)], edi   ; score
+
+    ; fill score in score text using sprintf
+    mov rdi, score_text     ; result
+    mov rsi, score_format   ; format
+    mov rdx, [rbp - local(1)]   ; score
+    call sprintf
+
+    ; clear previous score text using drawRect
+    mov rdi, [score_offset_x]
+    mov rsi, 0
+    mov rdx, [score_width]
+    mov rcx, board_offset
+    mov r8, background_color
+    call drawRect
+
+    ; draw score
+    ; void drawText(int x, int y, const char *text, const char *color)
+    mov rdi, [score_offset_x]
+    mov rsi, [score_offset_y]
+    mov rdx, score_text
+    mov rcx, score_color
+    call drawText
 
     ; return
     mov rsp, rbp
