@@ -1,7 +1,6 @@
 #include <X11/Xlib.h>
 #include <sys/time.h>
 #include <unistd.h>
-#include <sys/prctl.h>
 #include <signal.h>
 
 #define FRAME_TIME_MICROSECONDS 25000
