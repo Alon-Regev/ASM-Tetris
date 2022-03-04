@@ -1,6 +1,8 @@
 #include <X11/Xlib.h>
 #include <sys/time.h>
 #include <unistd.h>
+#include <sys/prctl.h>
+#include <signal.h>
 
 #define FRAME_TIME_MICROSECONDS 25000
 
@@ -18,11 +20,17 @@ void copyArea(int src_x, int src_y, int dst_x, int dst_y, int w, int h);
 
 void gameLoop();
 void waitForNextFrame();
+void startMusic();
+void *playMusic(void *);
+
+pid_t music_pid;
 
 int main()
 {
     setup();
+    startMusic();
     gameLoop();
+    kill(music_pid, SIGTERM);
     return 0;
 }
 
@@ -80,4 +88,19 @@ void waitForNextFrame()
     gettimeofday(&time, NULL);
     uint timeSinceLastFrame = time.tv_usec % FRAME_TIME_MICROSECONDS;
     usleep(FRAME_TIME_MICROSECONDS - timeSinceLastFrame);
+}
+
+// function starts playing game's music in a new thread
+// input: none
+// return: none
+void startMusic()
+{
+    // create process
+    music_pid = fork();
+    if (music_pid == 0)
+    {
+        // play music
+        char *args[] = {NULL};
+        execv("./playMusic.sh", args);
+    }
 }
