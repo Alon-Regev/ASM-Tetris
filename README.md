@@ -7,7 +7,7 @@ It's main goal was getting familiar and comfortable with writing assembly code, 
 
 ## Links
 - [Planning Document](https://docs.google.com/document/d/197SnN1NuWaHP_1JR7hvm7B-I_1kc-xScFedeBzi-VZM/edit?usp=sharing) (docs)
-- [Video Presentation]() _TODO_
+- [Video Presentation](https://drive.google.com/file/d/1LvkUJH6zaES1ranKsGh_eZZ7LK5QiTJt/view?usp=sharing)
 
 ## How It Works
 The code was written mostly with NASM (~1250 lines of code), and the rest with C (~250 lines). <br/>
