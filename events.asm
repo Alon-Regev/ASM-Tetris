@@ -3,6 +3,9 @@
 
 %define piece_size 4
 
+%define lines_per_level 5
+%define min_drop_speed 3
+
 %define local(x) x * 8
 
 ; key codes
@@ -21,6 +24,7 @@ global init
 extern generatePiece
 extern randomColor
 extern drawScore
+extern drawLevel
 
 extern tryMove
 extern tryRotate
@@ -50,6 +54,9 @@ section .data
 
     score: dd 0
     line_clear_scores: dd 0, 60, 150, 350, 750
+
+    level: dw 0
+    line_clear_counter: dw 24
 
 section .text
 
@@ -104,9 +111,21 @@ dropUpdate:
     ; clear lines
     mov rdi, board
     call clearLines
+    add [line_clear_counter], ax
     ; add score
     mov rdi, [line_clear_scores + rax * 4]
     call addScore
+    ; check level up
+    cmp word [line_clear_counter], lines_per_level
+    jb dont_level_up
+    ; level up
+    sub word [line_clear_counter], lines_per_level
+    inc word [level]
+    ; draw new level
+    mov di, word [level]
+    call drawLevel
+
+dont_level_up:
     
     ; generate a new piece
     mov rdi, piece
@@ -118,8 +137,7 @@ dropUpdate:
 
 dont_freeze:
     ; reset timer
-    mov ax, [drop_speed]
-    mov [frames_to_drop], ax
+    call resetTimer
 
 dont_drop:
     mov rsp, rbp
@@ -173,15 +191,14 @@ down:
     cmp rax, 0
     je key_press_end
     ; reset timer
-    mov ax, [drop_speed]
-    mov [frames_to_drop], ax
+    call resetTimer
     ; add score
     mov rdi, 1
     call addScore
 
     jmp key_press_end
 up:
-    ; roatate piece
+    ; roatate 
     mov rdi, piece
     mov rsi, board
     mov dx, [piece_position]
@@ -206,8 +223,7 @@ space:
     mov rdi, rax    ; score
     call addScore
     ; reset timer
-    mov ax, [drop_speed]
-    mov [frames_to_drop], ax
+    call resetTimer
 
     jmp key_press_end
 
@@ -263,8 +279,18 @@ addScore:
     mov rbp, rsp
     sub rsp, 8
 
+    ; calculate multiplier (1 + level / 2 = (level + 2) * score / 2)
+    xor eax, eax
+    movsx eax, word [level]
+    add eax, 2  ; level + 1
+    mul edi ; (level + 1) * score
+    ; div by 2
+    mov cx, 2
+    xor dx, dx
+    div cx
+
     ; add score
-    add dword[score], edi
+    add dword [score], eax
 
     ; draw score
     mov edi, [score]
@@ -272,4 +298,24 @@ addScore:
 
     mov rsp, rbp
     pop rbp
+    ret
+
+; function resets the drop timer
+; input: none
+; return: none
+resetTimer:
+    ; calculate drop speed = 200 / (level + 8)
+    xor rax, rax
+    xor rdx, rdx
+    mov ax, 200
+    mov bx, [level]
+    add bx, 8
+    div bx
+    ; min 3 frames
+    cmp ax, min_drop_speed
+    jge set_drop_speed
+    ; set to min
+    mov ax, min_drop_speed
+set_drop_speed:
+    mov word [frames_to_drop], ax
     ret

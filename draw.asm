@@ -13,6 +13,7 @@ global randomColor
 global getBackgroundColor
 global lineClearRedraw
 global drawScore
+global drawLevel
 
 ; imported functions
 extern drawRect
@@ -51,6 +52,14 @@ section .data
     score_offset_y: dw 20
     score_width: dw 80
     score_height: dw 15
+
+    level_format: db "Level: %d", 0
+    level_text: times 20 db 0
+    level_color: db "white", 0
+    level_offset_x: dw 220
+    level_offset_y: dw 20
+    level_width: dw 80
+    level_height: dw 15
 
 section .text
 ; funciton draws a piece on the screen
@@ -253,6 +262,44 @@ drawScore:
     mov rsi, [score_offset_y]
     mov rdx, score_text
     mov rcx, score_color
+    call drawText
+
+    ; return
+    mov rsp, rbp
+    pop rbp
+    ret
+
+; function draws level on the screen
+; input: level (int) - the level to draw (di)
+; return: none
+drawLevel:
+    push rbp
+    mov rbp, rsp
+    ; 1 local
+    sub rsp, 8
+    movzx rax , di   ; level
+    mov [rbp - local(1)], rax   ; level
+
+    ; fill level in level text using sprintf
+    mov rdi, level_text     ; result
+    mov rsi, level_format   ; format
+    mov rdx, [rbp - local(1)]   ; level
+    call sprintf
+
+    ; clear previous level text using drawRect
+    mov rdi, [level_offset_x]
+    mov rsi, 0
+    mov rdx, [level_width]
+    mov rcx, board_offset
+    mov r8, background_color
+    call drawRect
+
+    ; draw level
+    ; void drawText(int x, int y, const char *text, const char *color)
+    mov rdi, [level_offset_x]
+    mov rsi, [level_offset_y]
+    mov rdx, level_text
+    mov rcx, level_color
     call drawText
 
     ; return
