@@ -51,13 +51,12 @@ section .data
     piece_color: dq 0
 
     frames_to_drop: dw 20
-    drop_speed: dw 15   ; once per second
 
     score: dd 0
     line_clear_scores: dd 0, 60, 150, 350, 750
 
     level: dw 0
-    line_clear_counter: dw 24
+    line_clear_counter: dw 0
 
 section .text
 
