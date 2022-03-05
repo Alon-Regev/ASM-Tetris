@@ -2,6 +2,7 @@
 #include <sys/time.h>
 #include <unistd.h>
 #include <signal.h>
+#include <stdio.h>
 
 #define FRAME_TIME_MICROSECONDS 25000
 
@@ -10,8 +11,9 @@ extern void setup();
 extern int checkEvent();
 extern XEvent getEvent();
 extern int isWmDeleteEvent(XEvent);
+extern int getScore();
 // event handlers
-extern void update();
+extern int update();
 extern void handleKeyPress(uint keyCode);
 extern void init();
 
@@ -50,7 +52,7 @@ void gameLoop()
         // if not events wait until next frame
         if (!checkEvent())
         {
-            update();
+            running = update();
             waitForNextFrame();
             continue;
         }
@@ -76,6 +78,9 @@ void gameLoop()
             break;
         }
     }
+
+    // print final score
+    printf("Final score: %d points\n", getScore());
 }
 
 // function waits until next frame

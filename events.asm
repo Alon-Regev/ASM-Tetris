@@ -19,6 +19,7 @@
 global update
 global handleKeyPress
 global init
+global getScore
 
 ; imported functions
 extern generatePiece
@@ -34,7 +35,7 @@ extern clearLines
 
 extern srand
 extern time
-extern exit
+
 
 section .data
     ; vars
@@ -63,7 +64,7 @@ section .text
 ; event handler for updating the game state every frame
 ; called every frame by the game loop
 ; input: none
-; return: none
+; return: whether the game should continue
 update:
     push rbp
     mov rbp, rsp
@@ -76,7 +77,7 @@ update:
 
 ; function updates the drop state
 ; input: none
-; return: none
+; return: whether the game should continue (false if game over)
 dropUpdate:
     push rbp
     mov rbp, rsp
@@ -140,12 +141,15 @@ dont_freeze:
     call resetTimer
 
 dont_drop:
+    ; return true
+    mov rax, 1
     mov rsp, rbp
     pop rbp
     ret
 
 drop_game_over:
-    call gameOver
+    ; return false
+    mov rax, 0
     mov rsp, rbp
     pop rbp
     ret
@@ -264,13 +268,6 @@ init:
 
     ret
 
-; function ends the game
-; input: none
-; return: none
-gameOver:
-    mov rdi, 0
-    call exit
-
 ; function adds score
 ; input: score as unsigned integer   (edi)
 ; return: none
@@ -318,4 +315,11 @@ resetTimer:
     mov ax, min_drop_speed
 set_drop_speed:
     mov word [frames_to_drop], ax
+    ret
+
+; function returns the current score
+; input: none
+; return: score as unsigned integer   (eax)
+getScore:
+    mov eax, [score]
     ret
